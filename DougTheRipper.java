@@ -17,6 +17,7 @@ import java.util.Base64;
 // import java.security.NoSuchAlgorithmException;
 // import java.util.Scanner;
 // import java.util.Vector;
+import java.lang.Integer;
 import java.lang.Thread;
 import Doug.DougSmasher;
 import Doug.DougHash;
@@ -24,6 +25,11 @@ import Doug.DougDict;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Option.Builder;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.ParseException;
 
 public class DougTheRipper
 {
@@ -180,7 +186,7 @@ public class DougTheRipper
 								.longOpt("group")
 								.hasArg()
 								.desc("Group Name to use.")
-//								.type(String)
+								.type(String.class)
 								.build();
 
 		Option challenge = Option.builder("c")
@@ -188,7 +194,7 @@ public class DougTheRipper
 									.longOpt("challenge")
 									.hasArg()
 									.desc("Challenge string to use.")
-//									.type(String)
+									.type(String.class)
 									.build();
 
 		Option hash = Option.builder("h")
@@ -196,17 +202,16 @@ public class DougTheRipper
 								.longOpt("hash")
 								.hasArg()
 								.desc("Hash to compare against.")
-//								.type(String)
+								.type(String.class)
 								.build();
 
-	//	Option hashFile = Option.Builder
 
 		Option base64 = Option.builder("b")
 								.argName("base64")
 								.longOpt("base")
 								.hasArg()
 								.desc("Base64 String to compare")
-//								.type(String)
+								.type(String.class)
 								.build();
 
 		Option log = Option.builder("l")
@@ -224,9 +229,50 @@ public class DougTheRipper
 		Option dictionary = Option.builder("d")
 									.argName("dictonary")
 									.longOpt("dictonary")
+									.hasArg()
 									.desc("Dictonary to use in cracking.")
+									.type(String.class)
 									.build();
 
+		Option threads = Option.builder("t")
+									.argName("threads")
+									.longOpt("threads")
+									.desc("Number of threads to use for cracking.")
+									.type(Integer.class)
+									.build();
+
+		Option multiProcess = Option.builder("m")
+										.argName("Multi-proccess")
+										.longOpt("multiproc")
+										.desc("Muti processing option to further paralellize"
+											+ "over multiple computers, [computer#] [totalNumComputers]")
+										.numberOfArgs(2)
+										.type(Integer.class)
+										.build();
+
+		Option maxWords = Option.builder("w")
+									.argName("Maximum words")
+									.longOpt("maxwords")
+									.desc("Maximum number of words to smash together for the passphrase option")
+									.hasArg()
+									.type(Integer.class)
+									.build();
+
+		Option maxIter = Option.builder("i")
+									.argName("Maximum iterations")
+									.longOpt("maxiter")
+									.desc("Maximum number of iterations for the entropy option")
+									.hasArg()
+									.type(Integer.class)
+									.build();
+
+		Option mode = Option.builder("m")
+								.argName("Cracking Mode")
+								.longOpt("mode")
+								.desc("Mode to use for password cracking")
+								.type(String.class)
+								.hasArg()
+								.build();
 
 
 
@@ -234,19 +280,26 @@ public class DougTheRipper
 		opts.addOption(log);
 		opts.addOption(Group);
 		opts.addOption(challenge);
-		
+		opts.addOption(hash);
+		opts.addOption(base64);
+		opts.addOption(logFull);
+		opts.addOption(dictionary);
+		opts.addOption(threads);
+		opts.addOption(multiProcess);
+		opts.addOption(maxWords);
+		opts.addOption(maxIter);
+		opts.addOption(mode);
 
+		CommandLineParser parser = new DefaultParser();
 
-//		opts.addOption("l", "log", "Enables Logging");
-		//opts.addOption("d", "dictionary", true, "Dictionary File to be used instead of cracklib-small");
-		//opts.addOption("h", "help", false, "Prints this help message");
-		//opts.addOption("t", "threads", true, "Number of Threads to be used in total.");
-
-
-
-
-
-
+		try
+		{
+			CommandLine line= parser.parse(opts, args);
+		}
+		catch(ParseException e)
+		{
+			System.err.println("Parsing failed. Reason: " + e.getMessage());
+		}
 
 
 //		new DougTheRipper();
