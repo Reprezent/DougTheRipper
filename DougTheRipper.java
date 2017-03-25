@@ -9,127 +9,96 @@
 
 
 import java.util.Base64;
-// import java.io.BufferedReader;
-// import java.io.FileNotFoundException;
-// import java.io.FileReader;
-// import java.io.IOException;
-// import java.security.MessageDigest;
-// import java.security.NoSuchAlgorithmException;
-// import java.util.Scanner;
-// import java.util.Vector;
 import java.lang.Integer;
 import java.lang.Thread;
+import java.util.ArrayList;
 import Doug.DougSmasher;
+import Doug.DougLog;
 import Doug.DougHash;
 import Doug.DougDict;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Option.Builder;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
+import Doug.DougCmdOpts;
 
 public class DougTheRipper
 {
-	public DougTheRipper()
+	public DougTheRipper(String[] args)
 	{
-		words = new DougSmasher(dict, 5);
+		DougCmdOpts cmdOpts = new DougCmdOpts(args);
+		groupName = cmdOpts.getGROUP_NAME();
+		challenge = cmdOpts.getCHALLENGE();
+		hashString = cmdOpts.getHASH();
+        dict = new DougDict(cmdOpts.getDICTONARY());
+        NUM_THREADS = cmdOpts.getNUM_THREADS();
+
+
+
+		words = new DougSmasher(dict, cmdOpts.getMAX_NUM_WORDS());
 		this.wordSmasher();
 	}
 
-	public DougTheRipper(int MAX_NUM_WORDS, int numSplits, int splitNumber)
-	{
-		words = new DougSmasher(dict, MAX_NUM_WORDS);
+//	public DougTheRipper(int MAX_NUM_WORDS, int numSplits, int splitNumber)
+//	{
+//		words = new DougSmasher(dict, MAX_NUM_WORDS);
 //		(dict.size()/numSplits)*(splitNumber - 1);
-	}
+//    }
 
 	public void wordSmasher()
 	{
 		Thread thing = new Thread(words);
-		Thread thing2 = new Thread(new Runnable()
-		{
-			public void run()
-			{
-				hashing(nonBase64_5, challenge5);
-			}
-		});
 
-		Thread thing3 = new Thread(new Runnable()
-		{
-			public void run()
-			{
-				hashing(nonBase64_5, challenge5);
-			}
-		});
-
-		Thread thing4 = new Thread(new Runnable()
-		{
-			public void run()
-			{
-				hashing(nonBase64_5, challenge5);
-			}
-		});
-
-		Thread thing5 = new Thread(new Runnable()
-		{
-			public void run()
-			{
-				hashing(nonBase64_5, challenge5);
-			}
-		});
-
-		Thread thing6 = new Thread(new Runnable()
-		{
-			public void run()
-			{
-				hashing(nonBase64_5, challenge5);
-			}
-		});
+		ArrayList<Thread> threadArrayList = new ArrayList<Thread>();
+		for(int i = 1; i < NUM_THREADS; i++)
+        {
+            threadArrayList.add(new Thread(new Runnable()
+		    {
+			    public void run()
+			    {
+				    hashing(hashString, challenge);
+			    }
+		    }));
+        }
 
 //		Thread logging = new Thread(logs);
 //		System.err.println("Logging started.");
 //		logging.start();
 		System.err.println("String Creation started");
 		thing.start();
-		System.err.println("Hasher1 started");
-		thing2.start();
-		System.err.println("Hasher2 started");
-		thing3.start();
-		System.err.println("Hasher3 started");
-		thing4.start();
-		System.err.println("Hasher4 started");
-		thing5.start();
-		System.err.println("Hasher5 started");
-		thing6.start();
 
-/*		try
-		{
-			thing.join();
-		}
-		catch(InterruptedException e)
-		{
-			System.err.println("String maker interrupted");
-		}
-*/	
+		for(int i = 1; i < NUM_THREADS; i++) {
+            System.err.println("Hasher " + Integer.toString(i) + " started");
+            threadArrayList.get(i).start();
+        }
+
+        boolean allBlocked = true;
+		boolean oneFound = false;
 		while(true)
 		{
-			if(thing2.getState() == Thread.State.BLOCKED 
-			&& thing.getState() == Thread.State.TERMINATED
-			&& thing3.getState() == Thread.State.BLOCKED
-			&& thing4.getState() == Thread.State.BLOCKED
-			&& thing5.getState() == Thread.State.BLOCKED
-			&& thing6.getState() == Thread.State.BLOCKED)
+		    allBlocked = true;
+		    for(Thread i : threadArrayList)
+            {
+                if(i.getState() != Thread.State.BLOCKED)
+                {
+                    allBlocked = false;
+                    break;
+                }
+            }
+
+            oneFound = false;
+            for(Thread i : threadArrayList)
+            {
+                if(i.getState() == Thread.State.TERMINATED)
+                {
+                    oneFound = true;
+                    break;
+                }
+            }
+
+            if(allBlocked
+			&& thing.getState() == Thread.State.TERMINATED)
 			{
 				System.out.println("We found nothing...");
 				System.exit(1);
 			}
-			else if(thing2.getState() == Thread.State.TERMINATED
-				 || thing3.getState() == Thread.State.TERMINATED
-				 || thing4.getState() == Thread.State.TERMINATED
-				 || thing5.getState() == Thread.State.TERMINATED
-				 || thing6.getState() == Thread.State.TERMINATED)
+			else if(oneFound)
 			{
 				System.exit(100);
 			}
@@ -181,147 +150,30 @@ public class DougTheRipper
 
 	public static void main(String[] args)
 	{
-		Option Group = Option.builder("g")
-								.argName("group")
-								.longOpt("group")
-								.hasArg()
-								.desc("Group Name to use.")
-								.type(String.class)
-								.build();
-
-		Option challenge = Option.builder("c")
-									.argName("challenge")
-									.longOpt("challenge")
-									.hasArg()
-									.desc("Challenge string to use.")
-									.type(String.class)
-									.build();
-
-		Option hash = Option.builder("h")
-								.argName("hash")
-								.longOpt("hash")
-								.hasArg()
-								.desc("Hash to compare against.")
-								.type(String.class)
-								.build();
-
-
-		Option base64 = Option.builder("b")
-								.argName("base64")
-								.longOpt("base")
-								.hasArg()
-								.desc("Base64 String to compare")
-								.type(String.class)
-								.build();
-
-		Option log = Option.builder("l")
-								.argName("Logging")
-								.longOpt("log")
-								.desc("Enables logging.")
-								.build();
-
-		Option logFull = Option.builder("LF")
-									.argName("Full logging")
-									.longOpt("logfull")
-									.desc("Enables verbose logging.")
-									.build();
-
-		Option dictionary = Option.builder("d")
-									.argName("dictonary")
-									.longOpt("dictonary")
-									.hasArg()
-									.desc("Dictonary to use in cracking.")
-									.type(String.class)
-									.build();
-
-		Option threads = Option.builder("t")
-									.argName("threads")
-									.longOpt("threads")
-									.desc("Number of threads to use for cracking.")
-									.type(Integer.class)
-									.build();
-
-		Option multiProcess = Option.builder("m")
-										.argName("Multi-proccess")
-										.longOpt("multiproc")
-										.desc("Muti processing option to further paralellize"
-											+ "over multiple computers, [computer#] [totalNumComputers]")
-										.numberOfArgs(2)
-										.type(Integer.class)
-										.build();
-
-		Option maxWords = Option.builder("w")
-									.argName("Maximum words")
-									.longOpt("maxwords")
-									.desc("Maximum number of words to smash together for the passphrase option")
-									.hasArg()
-									.type(Integer.class)
-									.build();
-
-		Option maxIter = Option.builder("i")
-									.argName("Maximum iterations")
-									.longOpt("maxiter")
-									.desc("Maximum number of iterations for the entropy option")
-									.hasArg()
-									.type(Integer.class)
-									.build();
-
-		Option mode = Option.builder("m")
-								.argName("Cracking Mode")
-								.longOpt("mode")
-								.desc("Mode to use for password cracking")
-								.type(String.class)
-								.hasArg()
-								.build();
-
-
-
-		Options opts = new Options();
-		opts.addOption(log);
-		opts.addOption(Group);
-		opts.addOption(challenge);
-		opts.addOption(hash);
-		opts.addOption(base64);
-		opts.addOption(logFull);
-		opts.addOption(dictionary);
-		opts.addOption(threads);
-		opts.addOption(multiProcess);
-		opts.addOption(maxWords);
-		opts.addOption(maxIter);
-		opts.addOption(mode);
-
-		CommandLineParser parser = new DefaultParser();
-
-		try
-		{
-			CommandLine line= parser.parse(opts, args);
-		}
-		catch(ParseException e)
-		{
-			System.err.println("Parsing failed. Reason: " + e.getMessage());
-		}
-
-
-//		new DougTheRipper();
+		new DougTheRipper(args);
 	}
 	
 
-	private final DougDict dict = new DougDict(null);
-	//	private final DougLog logs = new DougLog();
+	private final int NUM_THREADS;
+	private final DougDict dict;
+	private final DougLog logs = new DougLog();
 	private final DougSmasher words;
 	private DougHash hash;
 
-    private final String text2 = "61KeWef3OaQFINrCHf8MUnU8VSvtdKgyMgO2yNNIr4w=";
-	private final String text4 = "j5zHYIjKwGl6XHAN9Gecm2IGARoIuSSC+b3hXUwL0Oo="; // Hash captured from Wireshark
-	private final String text5 = "EbP5fQE2l/k573CmC7C9lAJ+iNSGBvaeLtTVV4uZkbU=";
+	//private final String text;
+	private final String hashString;
+	private final String challenge;
+//    private final String text2 = "61KeWef3OaQFINrCHf8MUnU8VSvtdKgyMgO2yNNIr4w=";
+//	private final String text4 = "j5zHYIjKwGl6XHAN9Gecm2IGARoIuSSC+b3hXUwL0Oo="; // Hash captured from Wireshark
+//	private final String text5 = "EbP5fQE2l/k573CmC7C9lAJ+iNSGBvaeLtTVV4uZkbU=";
+//
+//	private final String nonBase64_2 = new String(Base64.getDecoder().decode(text2));
+//	private final String nonBase64_4 = new String(Base64.getDecoder().decode(text4));
+//	private final String nonBase64_5 = new String(Base64.getDecoder().decode(text5));
+//
+//    private final String challenge2 = "879880826"; // Challenge Nonce captured from wireshark
+//	private final String challenge4 = "-1120810204"; // Challenge Nonce captured from wireshark
+//	private final String challenge5 = "-1819859971";
 
-	private final String nonBase64_2 = new String(Base64.getDecoder().decode(text2));
-	private final String nonBase64_4 = new String(Base64.getDecoder().decode(text4));
-	private final String nonBase64_5 = new String(Base64.getDecoder().decode(text5));
-
-    private final String challenge2 = "879880826"; // Challenge Nonce captured from wireshark
-	private final String challenge4 = "-1120810204"; // Challenge Nonce captured from wireshark
-	private final String challenge5 = "-1819859971";
-
-	private final String groupName = "Doug"; // Group name created by us
+	private final String groupName; // Group name created by us
 }

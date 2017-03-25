@@ -7,21 +7,21 @@ package Doug;
 // This class handles all logging related functions.
 
 
-public class DougCrack
+public class DougCracker
 {
-	public DougCrack(String start, int MAX_LEN)
+	public DougCracker(String start, int MAX_LEN)
 	{
 		initalString = start;
 		this.MAX_LEN = MAX_LEN;
 	}
 
 
-	public static String upperCase(String password, int numUpper);
-	public static String addNumsEnd(String password, int numNums);
-	public static String addSpecialsCharsEnd(String password, int numSpecChars);
-	public static String leetSpeak(String password, int numLeet);
-	public static String addNumsStart(String password, int numNums);
-	public static String addSpecialCharsStart(String password, int numSpecChars);
+//	public static String upperCase(String password, int numUpper);
+//	public static String addNumsEnd(String password, int numNums);
+//	public static String addSpecialsCharsEnd(String password, int numSpecChars);
+//	public static String leetSpeak(String password, int numLeet);
+//	public static String addNumsStart(String password, int numNums);
+//	public static String addSpecialCharsStart(String password, int numSpecChars);
 
 	private final String initalString;
 	private int beginNums    = 0,
