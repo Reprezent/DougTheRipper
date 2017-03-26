@@ -1,0 +1,2 @@
+To compile just type 'make'
+To run use the command 'java -cp commons-cli-1.4/commons-cli-1.4.jar: DougTheRipper [options]'
