@@ -28,10 +28,25 @@ public class DougTheRipper
 		hashString = cmdOpts.getHASH();
         dict = new DougDict(cmdOpts.getDICTONARY());
         NUM_THREADS = cmdOpts.getNUM_THREADS();
+		logs = (cmdOpts.getLog()) ? new DougLog() : null;
 
-
-
-		words = new DougSmasher(dict, cmdOpts.getMAX_NUM_WORDS());
+		int Num_comps = cmdOpts.getNUM_COMPS();
+		int Comp_num = cmdOpts.getCOMP_NUM();
+		int words_per_comp = dict.size()/Num_comps;
+//		System.out.println("Comp Num: " + Integer.toString(Comp_num));
+//		System.out.println("Num Comps: " + Integer.toString(Num_comps));
+//		System.out.println("Dict size: " + Integer.toString(dict.size()));
+//		System.out.println("Start: " + Integer.toString(words_per_comp * Comp_num));
+//		System.out.println("End:   " + Integer.toString(words_per_comp * (Comp_num + 1)));
+		if(Comp_num + 1 == Num_comps)
+		{
+			words = new DougSmasher(dict, cmdOpts.getMAX_NUM_WORDS(), words_per_comp * Comp_num, dict.size());
+		}
+		else
+		{
+			words = (cmdOpts.getMULTIPROCC()) ? new DougSmasher(dict, cmdOpts.getMAX_NUM_WORDS(), words_per_comp * Comp_num, (words_per_comp * (Comp_num + 1))) 
+											  : new DougSmasher(dict, cmdOpts.getMAX_NUM_WORDS());
+		}
 		this.wordSmasher();
 	}
 
@@ -46,7 +61,7 @@ public class DougTheRipper
 		Thread thing = new Thread(words);
 
 		ArrayList<Thread> threadArrayList = new ArrayList<Thread>();
-		for(int i = 1; i < NUM_THREADS; i++)
+		for(int i = 0; i < NUM_THREADS; i++)
         {
             threadArrayList.add(new Thread(new Runnable()
 		    {
@@ -63,19 +78,20 @@ public class DougTheRipper
 		System.err.println("String Creation started");
 		thing.start();
 
-		for(int i = 1; i < NUM_THREADS; i++) {
-            System.err.println("Hasher " + Integer.toString(i) + " started");
+		for(int i = 0; i < NUM_THREADS; i++) {
+            System.err.println("Hasher " + Integer.toString(i + 1) + " started");
             threadArrayList.get(i).start();
         }
 
         boolean allBlocked = true;
 		boolean oneFound = false;
+		System.err.println("Starting Thread monitoring.");
 		while(true)
 		{
 		    allBlocked = true;
 		    for(Thread i : threadArrayList)
             {
-                if(i.getState() != Thread.State.BLOCKED)
+                if(i.getState() != Thread.State.WAITING)
                 {
                     allBlocked = false;
                     break;
@@ -156,7 +172,7 @@ public class DougTheRipper
 
 	private final int NUM_THREADS;
 	private final DougDict dict;
-	private final DougLog logs = new DougLog();
+	private final DougLog logs;
 	private final DougSmasher words;
 	private DougHash hash;
 

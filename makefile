@@ -10,7 +10,8 @@ DOUG_PATH = Doug/
 DOUG_SOURCES = $(DOUG_PATH)DougDict.java \
 			   $(DOUG_PATH)DougHash.java \
 			   $(DOUG_PATH)DougLog.java \
-			   $(DOUG_PATH)DougSmasher.java
+			   $(DOUG_PATH)DougSmasher.java \
+			   $(DOUG_PATH)DougCmdOpts.java
 
 
 all: $(SOURCES) $(DOUG)

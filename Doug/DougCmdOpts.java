@@ -9,18 +9,23 @@ package Doug;
 
 import java.util.Base64;
 import java.lang.Integer;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
+//import org.apache.commons.cli.Option;
+//import org.apache.commons.cli.DefaultParser;
+//import org.apache.commons.cli.CommandLine;
+//import org.apache.commons.cli.CommandLineParser;
+//import org.apache.commons.cli.HelpFormatter;
+//import org.apache.commons.cli.ParseException;
 
 public class DougCmdOpts
 {
 	public DougCmdOpts(String[] args)
     {
+        Option HELP = Option.builder("h")
+                .argName("help")
+                .longOpt("help")
+                .desc("Help diaglog flag.")
+                .build();
         Option Group = Option.builder("g")
                 .argName("group")
                 .longOpt("group")
@@ -37,7 +42,7 @@ public class DougCmdOpts
                 .type(String.class)
                 .build();
 
-        Option hash = Option.builder("h")
+        Option hash = Option.builder("x")
                 .argName("hash")
                 .longOpt("hash")
                 .hasArg()
@@ -60,10 +65,10 @@ public class DougCmdOpts
                 .desc("Enables logging.")
                 .build();
 
-        Option logFull = Option.builder("LF")
-                .argName("Full logging")
-                .longOpt("logfull")
-                .desc("Enables verbose logging.")
+        Option verb = Option.builder("v")
+                .argName("Verbose Output")
+                .longOpt("verbose")
+                .desc("Enables verbose messgages.")
                 .build();
 
         Option dictionary = Option.builder("d")
@@ -77,6 +82,7 @@ public class DougCmdOpts
         Option threads = Option.builder("t")
                 .argName("threads")
                 .longOpt("threads")
+				.hasArg()
                 .desc("Number of threads to use for cracking.")
                 .type(Integer.class)
                 .build();
@@ -115,12 +121,13 @@ public class DougCmdOpts
 
 
         Options opts = new Options();
+		opts.addOption(HELP);
         opts.addOption(log);
         opts.addOption(Group);
         opts.addOption(challenge);
         opts.addOption(hash);
         opts.addOption(base64);
-        opts.addOption(logFull);
+        opts.addOption(verb);
         opts.addOption(dictionary);
         opts.addOption(threads);
         opts.addOption(multiProcess);
@@ -144,14 +151,15 @@ public class DougCmdOpts
         {
             HelpFormatter help = new HelpFormatter();
             help.printHelp("DougTheRipper", opts, true);
+			System.exit(0);
         }
 
         GROUP_NAME = line.getOptionValue("g", groupName);
-        CHALLENGE = line.getOptionValue("c", challenge5);
-        BASE64 = line.getOptionValue("b", text5);
-        HASH = line.getOptionValue("h", new String(Base64.getDecoder().decode(BASE64)));
+        CHALLENGE = line.getOptionValue("c", challenge2);
+        BASE64 = line.getOptionValue("b", text2);
+        HASH = line.getOptionValue("x", new String(Base64.getDecoder().decode(BASE64)));
         Logs = line.hasOption("l");
-        FullLogs = line.hasOption("LF");
+        Verbose = line.hasOption("v");
         DICTONARY = line.getOptionValue("d", dict);
         NUM_THREADS = Integer.parseInt(line.getOptionValue("t", threadNum));
         MAX_NUM_WORDS = Integer.parseInt(line.getOptionValue("w", wordNums));
@@ -159,8 +167,16 @@ public class DougCmdOpts
         MULTIPROCC = line.hasOption("m");
 
         String[] temp = line.getOptionValues("m");
-        COMP_NUM = Integer.parseInt(temp[0]);
-        NUM_COMPS = Integer.parseInt(temp[1]);
+		if(temp != null)
+		{
+			COMP_NUM = Integer.parseInt(temp[0]);
+			NUM_COMPS = Integer.parseInt(temp[1]);
+		}
+		else
+		{
+			COMP_NUM = -1;
+			NUM_COMPS = -1;
+		}
 
         CRACKING_MODE = line.hasOption("e");
     }
@@ -190,9 +206,9 @@ public class DougCmdOpts
         return Logs;
     }
 
-    public boolean getLogFull()
+    public boolean getVerbose()
     {
-        return FullLogs;
+        return Verbose;
     }
 
     public boolean isCRACKING_MODE()
@@ -268,6 +284,6 @@ public class DougCmdOpts
 	private final String BASE64;
 	private final String CHALLENGE;
 	private final boolean Logs;
-	private final boolean FullLogs;
+	private final boolean Verbose;
 
 }

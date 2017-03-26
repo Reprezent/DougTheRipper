@@ -27,6 +27,18 @@ public final class DougSmasher implements Runnable
 		{
 			dict = dictionary;
 		}
+
+		this.end = dict.size();
+	}
+	public DougSmasher(DougDict dictionary, int MAX_NUM_WORDS, int start, int end)
+	{
+		this.MAX_NUM_WORDS = MAX_NUM_WORDS;
+		this.start = start;
+		this.end = end;
+		if(dict == null)
+		{
+			dict = dictionary;
+		}
 	}
 
 	public void smashWords(int numWords)
@@ -43,20 +55,10 @@ public final class DougSmasher implements Runnable
 			long startTime = System.nanoTime();
 			int[] wordLocations = new int[wordSize];
 			Arrays.fill(wordLocations, 0);
+			wordLocations[0] = start;
 			smashWordsRecursion(wordLocations, 0);
 			System.out.println("Finished words of size " + Integer.toString(wordSize));
 			System.out.println(Long.toString((System.nanoTime()-startTime)/1000/1000));
-		}
-	}
-
-	public void smashSomeWords(int start)
-	{
-		for(int wordSize = 1; wordSize <= MAX_NUM_WORDS; wordSize++)
-		{
-			int[] wordLocations = new int[wordSize];
-			Arrays.fill(wordLocations, 0);
-			wordLocations[0] = start;
-			smashWordsRecursion(wordLocations, 0);
 		}
 	}
 
@@ -66,7 +68,8 @@ public final class DougSmasher implements Runnable
 		if(locationIndex == location.length - 1)
 		{
 			StringBuilder smasher = new StringBuilder();
-			for(; location[locationIndex] < dict.size(); location[locationIndex] += 1)
+			final int RealEnd = (location.length == 1) ? end : dict.size();
+			for(; location[locationIndex] < RealEnd; location[locationIndex] += 1)
 			{
 				smasher.setLength(0);
 				for(int j : location)
@@ -87,6 +90,15 @@ public final class DougSmasher implements Runnable
 				{
 					continue;
 				}
+			}
+		}
+		else if(locationIndex == 0)
+		{
+
+			for(; location[locationIndex] < end; location[locationIndex]++)
+			{
+				smashWordsRecursion(location, locationIndex+1);
+				location[locationIndex + 1] = 0;
 			}
 		}
 		else
@@ -110,6 +122,8 @@ public final class DougSmasher implements Runnable
 		return smashedWords.take();
 	}
 
+	private int start = 0;
+	private int end = 0;
 	private static DougDict dict = null;
 	private static LinkedBlockingQueue<String> smashedWords = new LinkedBlockingQueue<String>(1000000);
 //	private ArrayList<Iterator<String>> tests;

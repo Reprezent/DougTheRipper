@@ -88,7 +88,7 @@ public class DougDict implements Iterable<String>
 		return tests.get(i);
 	}
 
-	int size()
+	public int size()
 	{
 		return tests.size();
 	}
